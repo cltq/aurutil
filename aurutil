@@ -1,0 +1,88 @@
+#!/bin/bash
+# myyay - minimal yay-like AUR helper (GitHub mirror version)
+# Author: CelestiaNV
+
+AUR_MIRROR="https://github.com/archlinux/aur.git"
+TMPDIR="~/.cache/aurutil"
+
+usage() {
+    echo "Usage:"
+    echo "  aurutil -S <package>        Install package"
+    echo "  aurutil -R <package>        Remove package"
+    echo "  aurutil -Rns <package>      Remove package with deps and configs"
+    echo "  aurutil -Syu                System + AUR upgrade"
+    echo "  aurutil -Ss <keyword>       Search packages"
+    exit 1
+}
+
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+mkdir -p "$TMPDIR"
+
+case "$1" in
+    -S)
+        shift
+        pkg="$1"
+        if [[ -z "$pkg" ]]; then
+            echo "==> No package specified."
+            exit 1
+        fi
+
+        echo "==> Installing $pkg from AUR mirror..."
+        cd "$TMPDIR" || exit 1
+        rm -rf "$pkg"
+        git clone --branch "$pkg" --single-branch "$AUR_MIRROR" "$pkg" 2>/dev/null || {
+            echo "==> Failed to clone from mirror. Package may not exist."
+            exit 1
+        }
+
+        cd "$pkg" || exit 1
+        makepkg -si
+        ;;
+
+    -R|-Rns)
+        shift
+        pkg="$1"
+        if [[ -z "$pkg" ]]; then
+            echo "==> No package specified."
+            exit 1
+        fi
+        echo "==> Removing $pkg..."
+        if [[ "$1" == "-Rns" ]]; then
+            sudo pacman -Rns  "$pkg"
+        else
+            sudo pacman -R  "$pkg"
+        fi
+        ;;
+
+    -Syu)
+        echo "==> Syncing and upgrading system..."
+        sudo pacman -Syu
+
+        echo "==> Updating AUR packages (from mirror)..."
+        cd "$TMPDIR" || exit 1
+        for dir in */; do
+            [ -d "$dir/.git" ] || continue
+            echo "==> Updating ${dir%/}"
+            cd "$dir" && git pull && makepkg -si  && cd ..
+        done
+        ;;
+
+    -Ss)
+        shift
+        keyword="$1"
+        if [[ -z "$keyword" ]]; then
+            echo "==> Please provide a search keyword."
+            exit 1
+        fi
+        echo "==> Searching for '$keyword'..."
+        git ls-remote --heads "$AUR_MIRROR" | cut -d'/' -f3 | grep -i "$keyword" | sort
+        ;;
+
+    *)
+        usage
+        ;;
+esac
+
