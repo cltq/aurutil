@@ -14,9 +14,13 @@ This command will put it in ~/.local/bin or will create the folder it if it does
 
 ## Usage
 
->   aurutil -S <package> - Install package
-  aurutil -R <package> - Remove package
-  aurutil -Rns <package> - Remove package with deps and configs
-  aurutil -Syu - Full System + AUR upgrade
-  aurutil -Ss <keyword> - Search packages
+aurutil -S <package> - Install package
+
+ aurutil -R <package> - Remove package
+ 
+ aurutil -Rns <package> - Remove package with deps and configs
+ 
+ aurutil -Syu - Full System + AUR upgrade
+
+ aurutil -Ss <keyword> - Search packages
 
