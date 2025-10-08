@@ -1,6 +1,4 @@
 #!/bin/bash
-# myyay - minimal yay-like AUR helper (GitHub mirror version)
-# Author: CelestiaNV
 
 AUR_MIRROR="https://github.com/archlinux/aur.git"
 TMPDIR="~/.cache/aurutil"
